@@ -20,8 +20,10 @@ namespace DirectoryAccessProject
         private IntPtr _token;
 
         const int LOGON32_PROVIDER_DEFAULT = 0;
-        //This parameter causes LogonUser to create a primary token.
+        // logon types
         const int LOGON32_LOGON_INTERACTIVE = 2;
+        const int LOGON32_LOGON_NETWORK = 3;
+        const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
 
         public ImpersonationUtility(string domain, string username, string password)
         {
@@ -37,15 +39,19 @@ namespace DirectoryAccessProject
         [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
         public extern static bool CloseHandle(IntPtr handle);
 
-        [PermissionSetAttribute(SecurityAction.Demand, Name = "FullTrus")]
+        [PermissionSetAttribute(SecurityAction.Demand, Name = "FullTrust")]
         public void Enter()
         {
-            if (this.IsInContext) return;
+            if (this.IsInContext)
+            {
+                return;
+            }
+
             _token = new IntPtr(0);
             try
             {
                 _token = IntPtr.Zero;
-                bool logonSuccessfull = LogonUser(_username, _domain, _password, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, ref _token);
+                bool logonSuccessfull = LogonUser(_username, _domain, _password, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, ref _token);
                 if (logonSuccessfull == false)
                 {
                     int error = Marshal.GetLastWin32Error();
